@@ -1,0 +1,13 @@
+{
+  "name": "employee_tracker",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.4",
+    "inquirer": "^8.2.4",
+    "mysql2": "^2.2.5"
+  }
+}
