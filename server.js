@@ -1,6 +1,7 @@
 require('dotenv').config();
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const consoleTable = require('console.table');
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -8,6 +9,7 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 });
+
 
 function promptDatabase() {
   inquirer
@@ -100,22 +102,67 @@ function promptDatabase() {
 }
 
   function viewDepartments() {
-    console.log('viewDepartments');
+    console.log('Viewing all Departments in database');
+    db.query('SELECT name AS "Department Name", id AS "Department ID" FROM department', (error, departments) => {
+        if (error) {
+            console.log('Failed to find departments', error);
+            return;
+        }
+        if (departments.length === 0) {
+            console.log('No departments found');
+        } else {
+            console.table(departments);
+        }
+        promptDatabase();
+    });
   }
 
   function viewRoles() {
-    console.log('ViewRoles');
+    console.log('Viewing all Roles in database');
+    db.query(`SELECT role.title AS "Job Title", role.id AS "Role ID", department.name AS "Department", CONCAT("$", FORMAT(role.salary, 2)) AS "Salary" FROM role
+    JOIN department ON role.department_id = department.id`, (error, roles) => {
+        if (error) {
+            console.log('Failed to find roles', error);
+            return;
+        }
+        if (roles.length === 0) {
+            console.log('No roles found');
+        } else {
+            console.table(roles);
+        }
+        promptDatabase();
+    });
   }
 
   function viewEmployees() {
-    console.log('viewEmployees');
+    console.log('Viewing all Employees in database');
+    db.query(`
+    SELECT employee.id AS 'ID', CONCAT(employee.first_name, ' ', employee.last_name) AS 'Name',
+    role.title AS 'Job Title', department.name AS 'Department', CONCAT('$', FORMAT(role.salary, 2)) AS 'Salary',
+    CONCAT(manager.first_name, ' ', manager.last_name) AS 'Manager' FROM employee
+    LEFT JOIN employee AS manager ON employee.manager_id = manager.id
+    JOIN role ON employee.role_id = role.id
+    JOIN department ON role.department_id = department.id`, (error, employees) => {
+        if (error) {
+            console.log('Failed to find employees', error);
+            return;
+        }
+        if (employees.length === 0) {
+            console.log('No employees found');
+        } else {
+            console.table(employees);
+        }
+        promptDatabase();
+    });
   }
 
-  function addDepartment() {
+// Not sure why but addDepartment function broke so had to look up how to fix, using async function like the rest allows input to be called up
+// properly 
+  async function addDepartment() {
     console.log('Adding a Department');
+    try {
     // inquirer prompts the user to put in input to create a new department
-    inquirer
-    .prompt([
+    const departmentInput = await inquirer.prompt([
     {
       name: 'departmentId',
       type: 'input',
@@ -135,21 +182,19 @@ function promptDatabase() {
       type: 'input',
       message: 'What is the name of the new department?'
     }
-    ])
-    .then(result => {
+    ]);
+    
     //Had to use db.promise() because it wasn't catching error
-      return db.promise().query('INSERT INTO department (id, name) VALUES (?, ?)', [result.departmentId, result.departmentName]);
-    })
-    .then(() => {
-      console.log(`${result.departmentName} department added successfully.`)
+      await db.promise().query('INSERT INTO department (id, name) VALUES (?, ?)', [departmentInput.departmentId, departmentInput.departmentName]);
+      console.log(`${departmentInput.departmentName} department added successfully.`);
       promptDatabase();
-    })
+   }
     // Add to add catch because it wasn't catching error properly
-    .catch(error => { 
+    catch (error) { 
         console.error('There was an error:', error);
         console.log('There was an error adding department, try again');
         promptDatabase();
-    });  
+    }  
   }
 
 //   id, title, salary, department_id
