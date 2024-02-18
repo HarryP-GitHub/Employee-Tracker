@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "console.table": "^0.10.0",
     "dotenv": "^16.4.4",
     "inquirer": "^8.2.4",
     "mysql2": "^2.2.5"
