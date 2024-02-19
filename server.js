@@ -10,7 +10,7 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
-
+//Main function to choose options, note the commented out options are some of the bonus features
 function promptDatabase() {
   inquirer
     .prompt({
@@ -103,6 +103,7 @@ function promptDatabase() {
 
   function viewDepartments() {
     console.log('Viewing all Departments in database');
+    //query to select name and id from department
     db.query('SELECT name AS "Department Name", id AS "Department ID" FROM department', (error, departments) => {
         if (error) {
             console.log('Failed to find departments', error);
@@ -111,6 +112,7 @@ function promptDatabase() {
         if (departments.length === 0) {
             console.log('No departments found');
         } else {
+            // displays departments
             console.table(departments);
         }
         promptDatabase();
@@ -119,6 +121,7 @@ function promptDatabase() {
 
   function viewRoles() {
     console.log('Viewing all Roles in database');
+    //selects role title, id, department id and salary from role, and the department name is gathered by using department id
     db.query(`SELECT role.title AS "Job Title", role.id AS "Role ID", department.name AS "Department", CONCAT("$", FORMAT(role.salary, 2)) AS "Salary" FROM role
     JOIN department ON role.department_id = department.id`, (error, roles) => {
         if (error) {
@@ -136,6 +139,7 @@ function promptDatabase() {
 
   function viewEmployees() {
     console.log('Viewing all Employees in database');
+    // Selects id, first name and last name, role id, manager id from employee as well as role salary, title and manager name
     db.query(`
     SELECT employee.id AS 'ID', CONCAT(employee.first_name, ' ', employee.last_name) AS 'Name',
     role.title AS 'Job Title', department.name AS 'Department', CONCAT('$', FORMAT(role.salary, 2)) AS 'Salary',
@@ -483,7 +487,7 @@ function promptDatabase() {
 //   function viewDepartmentBudgets() {
 //     console.log('viewDepartmentBudgets');
 //   }
-
+// connecting to database, then running the promptDatabase function to bring up options for user to select
   db.connect(err => {
     if (err) {
         console.error('Failed connecting to database:', err);
