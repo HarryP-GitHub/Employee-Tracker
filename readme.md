@@ -18,6 +18,20 @@ npm install dotenv@16.4.4
 
 npm install console.table@0.10.0
 
+Also, ensure that you have the sourced the database. This can in the Command Prompt, via signing in through MySQL.
+
+Please note: You need to be in the right location, this can be done by right clicking the db folder, 'Copy Path' and type in cd and paste in the path in the command prompt, then sign in using the following command
+
+mysql -u root -p 
+
+Then enter your password.
+
+Followed by:
+
+source schema.sql;
+
+source seeds.sql;
+
 ## Usage
 To use this project, simply begin by typing in the intergrated terminal: 
 
@@ -43,4 +57,4 @@ N/A
 
 ## Video Demo
 
-[Video Demo]()
+[Video Demo](https://drive.google.com/file/d/1pwETSMdQxQaBxtVoQWFk52ZB9u7l9Pl3/view?usp=sharing)

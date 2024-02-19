@@ -104,15 +104,17 @@ function promptDatabase() {
   function viewDepartments() {
     console.log('Viewing all Departments in database');
     //query to select name and id from department
+    // Structures the department table
     db.query('SELECT name AS "Department Name", id AS "Department ID" FROM department', (error, departments) => {
         if (error) {
             console.log('Failed to find departments', error);
             return;
         }
+        //Checking if there are no departments
         if (departments.length === 0) {
             console.log('No departments found');
         } else {
-            // displays departments
+            // displays table for all departments
             console.table(departments);
         }
         promptDatabase();
@@ -122,15 +124,18 @@ function promptDatabase() {
   function viewRoles() {
     console.log('Viewing all Roles in database');
     //selects role title, id, department id and salary from role, and the department name is gathered by using department id
+    // Structures the role table
     db.query(`SELECT role.title AS "Job Title", role.id AS "Role ID", department.name AS "Department", CONCAT("$", FORMAT(role.salary, 2)) AS "Salary" FROM role
     JOIN department ON role.department_id = department.id`, (error, roles) => {
         if (error) {
             console.log('Failed to find roles', error);
             return;
         }
+        //Checking if there are no roles
         if (roles.length === 0) {
             console.log('No roles found');
         } else {
+            //Displays table for all roles
             console.table(roles);
         }
         promptDatabase();
@@ -140,6 +145,7 @@ function promptDatabase() {
   function viewEmployees() {
     console.log('Viewing all Employees in database');
     // Selects id, first name and last name, role id, manager id from employee as well as role salary, title and manager name
+    // Structures the Employee table to be formatted how it is in the readme
     db.query(`
     SELECT employee.id AS 'ID', CONCAT(employee.first_name, ' ', employee.last_name) AS 'Name',
     role.title AS 'Job Title', department.name AS 'Department', CONCAT('$', FORMAT(role.salary, 2)) AS 'Salary',
@@ -151,9 +157,11 @@ function promptDatabase() {
             console.log('Failed to find employees', error);
             return;
         }
+        //Checking if there are no employees
         if (employees.length === 0) {
             console.log('No employees found');
         } else {
+        //Display table for all employees
             console.table(employees);
         }
         promptDatabase();
@@ -204,7 +212,7 @@ function promptDatabase() {
 //   id, title, salary, department_id
   async function addRole() { 
     console.log('Adding a Role');
-// Using try catch to get id's from department, so that it can be added to the list so department id can be selected by name
+// Getting id's from department, so that it can be added to the list so department id can be selected by name
     try {
       const [departments] = await db.promise().query('SELECT id, name FROM department');
       if (departments.length === 0) {
@@ -272,7 +280,7 @@ function promptDatabase() {
   async function addEmployee() {
     console.log('Adding an Employee');
 
-    //Using same try catch to get the role title and id to allow employee to select id by role title and manager by name and give manager id
+    //Getting the role title and id to allow employee to select id by role title and manager by name and give manager id
     try {
     // fetching the roles so that user can select from list of roles
       const [roles] = await db.promise().query('SELECT id, title FROM role');
@@ -372,7 +380,7 @@ function promptDatabase() {
     .then(input => {
       const employeeChoice = input.employeeNames;
       
-        // Fetching roles
+        // Fetching all roles
       db.query('SELECT id, title FROM role', (err, roles) => {
         if (err) {
             console.log('There was an error: ', err);
