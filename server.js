@@ -18,81 +18,81 @@ function promptDatabase() {
         message: 'Welcome to the Company Database, select an option!',
         name: 'options',
         choices: [
-            'View all departments',
-            'View all roles',
-            'View all employees',
-            'Add a department',
-            'Add a role',
-            'Add an employee',
-            'Update an employee role',
-            'Update employee managers',
-            'View employees by manager',
-            'View employees by department',
-            'Delete departments',
-            'Delete roles',
-            'Delete Employees',
-            'View department budgets',
+            'View all Departments',
+            'View all Roles',
+            'View all Employees',
+            'Add a Department',
+            'Add a Role',
+            'Add an Employee',
+            "Update an Employee's Role",
+            "Update Employee's Manager",
+            // 'View employees by manager',
+            // 'View employees by department',
+            // 'Delete departments',
+            // 'Delete roles',
+            // 'Delete Employees',
+            // 'View department budgets',
             'Exit'
         ]
     })
     .then((data) => {
       switch (data.options) {
-        case 'View all departments': {
+        case 'View all Departments': {
             viewDepartments();
             break;
         }
-        case 'View all roles': {
+        case 'View all Roles': {
             viewRoles();
             break;
         }
-        case 'View all employees': {
+        case 'View all Employees': {
             viewEmployees();
             break;
         }
-        case 'Add a department': {
+        case 'Add a Department': {
             addDepartment();
             break;
         }
-        case 'Add a role': {
+        case 'Add a Role': {
             addRole();
             break;
         }
-        case 'Add an employee': {
+        case 'Add an Employee': {
             addEmployee();
             break;
         }
-        case 'Update an employee role': {
+        case "Update an Employee's Role": {
             updateEmployeeRole();
             break;
         }
-        case 'Update employee managers': {
+        case "Update Employee's Manager": {
             updateEmployeeManager();
             break;
         }
-        case 'View employees by manager': {
-            viewEmployeeByManager();
-            break;
-        }
-        case 'View employees by department': {
-            viewEmployeeByDepartment();
-            break;
-        }
-        case 'Delete departments': {
-            deleteDepartments();
-            break;
-        }
-        case 'Delete roles': {
-            deleteRoles();
-            break;
-        }
-        case 'Delete Employees': {
-            deleteEmployees();
-            break;
-        }
-        case 'View department budgets': {
-            viewDepartmentBudgets();
-            break;
-        }
+        // case 'View employees by manager': {
+        //     viewEmployeeByManager();
+        //     break;
+        // }
+        // case 'View employees by department': {
+        //     viewEmployeeByDepartment();
+        //     break;
+        // }
+        // case 'Delete departments': {
+        //     deleteDepartments();
+        //     break;
+        // }
+        // case 'Delete roles': {
+        //     deleteRoles();
+        //     break;
+        // }
+        // case 'Delete Employees': {
+        //     deleteEmployees();
+        //     break;
+        // }
+        // case 'View department budgets': {
+        //     viewDepartmentBudgets();
+        //     break;
+        // }
         case 'Exit': {
             console.log('Exiting!');
             db.end();
@@ -184,12 +184,12 @@ function promptDatabase() {
     }
     ]);
     
-    //Had to use db.promise() because it wasn't catching error
+    //Inserts new department into department table
       await db.promise().query('INSERT INTO department (id, name) VALUES (?, ?)', [departmentInput.departmentId, departmentInput.departmentName]);
       console.log(`${departmentInput.departmentName} department added successfully.`);
       promptDatabase();
    }
-    // Add to add catch because it wasn't catching error properly
+    // Catching error
     catch (error) { 
         console.error('There was an error:', error);
         console.log('There was an error adding department, try again');
@@ -255,7 +255,7 @@ function promptDatabase() {
     ]);
       
       await db.promise().query('INSERT INTO role (id, title, salary, department_id) VALUES (?, ?, ?, ?)', [roleInput.roleId, roleInput.roleTitle, roleInput.roleSalary, roleInput.departmentId]);
-      console.log(`${roleInput.roleTitle} has been added as a new role`);
+      console.log(`${roleInput.roleTitle} has been added as a new role.`);
       promptDatabase();
     } catch (error) {
       console.error('There was an error:', error);
@@ -332,6 +332,7 @@ function promptDatabase() {
       }
     ]);
 
+    // This is inserting the new employee into the employee table with all the chosen values
     await db.promise().query('INSERT INTO employee (id, first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?, ?)', [employeeInput.employeeId, employeeInput.employeeFirstName, employeeInput.employeeLastName, employeeInput.roleId, employeeInput.managerId]);
     
     console.log(`${employeeInput.employeeFirstName} ${employeeInput.employeeLastName} has been added as an employee.`);
@@ -344,36 +345,144 @@ function promptDatabase() {
   }
 
   function updateEmployeeRole() {
-    console.log('updateEmployeeRole');
+    console.log('Updating Employee Role');
+
+    // Fetching all employees
+    db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, employees) => {
+      if (err) {
+        console.log('There was an error: ', err);
+        return;
+      }
+
+    // This is creating the list of employees
+    const employeeChoices = employees.map(employee => ({ name: employee.name, value: employee.id }));
+
+    inquirer.prompt([
+      {
+        name: 'employeeNames',
+        type: 'list',
+        message: 'Choose which employee to update:',
+        choices: employeeChoices,
+      }
+    ])
+    .then(input => {
+      const employeeChoice = input.employeeNames;
+      
+        // Fetching roles
+      db.query('SELECT id, title FROM role', (err, roles) => {
+        if (err) {
+            console.log('There was an error: ', err);
+            return;
+        }
+        // Creating the list for the employee's new role
+        const newRole = roles.map(role => ({ name: role.title, value: role.id }));
+
+        inquirer.prompt([
+          {
+            name: 'roleNames',
+            type: 'list',
+            message: "Select the employee's new role:",
+            choices: newRole,
+          }
+        ])
+        .then(input => {
+            const roleChoice = input.roleNames;
+            // This is updating the employee's role from the chosen role where the chosen employee is
+            db.query('UPDATE employee SET role_id = ? WHERE id = ?', [roleChoice, employeeChoice], (err) => {
+              if (err) {
+                console.log('Failed to update employee role', err);
+                promptDatabase();
+              }
+              console.log('Employee Role has successfully been updated!');
+              promptDatabase();
+            });
+        });
+      });
+    });
+   });
   }
 
   function updateEmployeeManager() {
-    console.log('updateEmployeeManager');
+    console.log('Updating Employees Manager');
+    // Fetching all employees, essentially the same as updatingEmployeeRole
+    db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, employees) => {
+        if (err) {
+          console.log('There was an error: ', err);
+          return;
+        }
+      const employeeChoices = employees.map(employee => ({ name: employee.name, value: employee.id }));
+  
+      inquirer.prompt([
+        {
+          name: 'employeeNames',
+          type: 'list',
+          message: 'Choose which employee to update their manager:',
+          choices: employeeChoices,
+        }
+      ])
+      .then(input => {
+        const employeeChoice = input.employeeNames;
+        
+          // Fetching managers, essentially it is finding the names of the employee's who's don't have a manager, which
+          // Represents the managers.
+        db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id IS NULL', (err, managers) => {
+          if (err) {
+              console.log('There was an error: ', err);
+              return;
+          }
+          
+          // Basically the same as managerChoice just changed formatting so didn't get it confused with employees
+          // This is forming the list for the managers to be selected from
+          const newManager = [{ name: 'No Manager', value: null }].concat(managers.map(manager => ({ name: manager.name, value: manager.id })));
+  
+          inquirer.prompt([
+            {
+              name: 'managerNames',
+              type: 'list',
+              message: "Update the employee's new manager:",
+              choices: newManager,
+            }
+          ])
+          .then(input => {
+              const managerChoice = input.managerNames;
+              // This is updating the employee's manager to the new manager, where the selected employee is
+              db.query('UPDATE employee SET manager_id = ? WHERE id = ?', [managerChoice, employeeChoice], (err) => {
+                if (err) {
+                  console.log('Failed to update employee manager', err);
+                  promptDatabase();
+                }
+                console.log('Employee Manager has successfully been updated!');
+                promptDatabase();
+              });
+          });
+        });
+      });
+     });
   }
 
-  function viewEmployeeByManager() {
-    console.log('viewEmployeeByManager');
-  }
+//   function viewEmployeeByManager() {
+//     console.log('viewEmployeeByManager');
+//   }
 
-  function viewEmployeeByDepartment() {
-    console.log('viewEmployeeByDepartment');
-  }
+//   function viewEmployeeByDepartment() {
+//     console.log('viewEmployeeByDepartment');
+//   }
 
-  function deleteDepartments() {
-    console.log('deleteDepartments');
-  }
+//   function deleteDepartments() {
+//     console.log('deleteDepartments');
+//   }
 
-  function deleteRoles() {
-    console.log('deleteRoles');
-  }
+//   function deleteRoles() {
+//     console.log('deleteRoles');
+//   }
 
-  function deleteEmployees() {
-    console.log('deleteEmployees');
-  }
+//   function deleteEmployees() {
+//     console.log('deleteEmployees');
+//   }
 
-  function viewDepartmentBudgets() {
-    console.log('viewDepartmentBudgets');
-  }
+//   function viewDepartmentBudgets() {
+//     console.log('viewDepartmentBudgets');
+//   }
 
   db.connect(err => {
     if (err) {
